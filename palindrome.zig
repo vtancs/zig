@@ -1,11 +1,10 @@
 const std = @import("std");
 
 fn isPalindrome(s: []const u8) bool {
-    var i: usize = 0;
-    var j: usize = s.len;
+    if (s.len == 0) return false;
 
-    if (j == 0) return false;
-    j -= 1;
+    var i: usize = 0;
+    var j: usize = s.len - 1;
 
     while (i < j) {
         if (s[i] != s[j]) return false;
@@ -15,28 +14,24 @@ fn isPalindrome(s: []const u8) bool {
     return true;
 }
 
-pub fn main() !void {
-    const stdio = std.io.getStdOut().writer();
-    const allocator = std.heap.page_allocator;
+pub fn main(init: std.process.Init) !void {
+    var iter = try std.process.Args.Iterator.initAllocator(init.minimal.args, init.gpa);
+    defer iter.deinit();
 
-    const args = try std.process.argsAlloc(allocator);
-    defer std.process.argsFree(allocator, args);
+    _ = iter.next(); // skip executable name
 
-    if (args.len < 2) {
-        try stdio.print("Usage: palindromes <text>\n", .{});
+    const text = iter.next() orelse {
+        std.debug.print("Usage: palindrome <text>\n", .{});
         return;
-    }
+    };
 
-    const text = args[1];
-    const len = text.len;
+    std.debug.print("Palindromes found:\n", .{});
 
-    try stdio.print("Palindromes found:\n", .{});
-
-    for (0..len) |start| {
-        for (start + 1..len + 1) |end| {
+    for (0..text.len) |start| {
+        for (start + 1..text.len + 1) |end| {
             const substr = text[start..end];
             if (isPalindrome(substr)) {
-                try stdio.print("{s}\n", .{substr});
+                std.debug.print("{s}\n", .{substr});
             }
         }
     }
